@@ -53,10 +53,12 @@ class Festival {
   Map<String, List<Performance>> groupByStage() {
     Map<String, List<Performance>> groups = {};
     for (Performance p in performances) {
-      if (!groups.containsKey(p.stage)) {
-        groups[p.stage] = [];
+      List<Performance>? list = groups[p.stage];
+      if (list == null) {
+        list = [];
+        groups[p.stage] = list;
       }
-      groups[p.stage]!.add(p);
+      list.add(p);
     }
     return groups;
   }
