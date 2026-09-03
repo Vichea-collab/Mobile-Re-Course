@@ -1,8 +1,8 @@
 class Measurement {
-  String sensorName;
-  double value;
-  String unit;
-  String? comment;
+  final String sensorName;
+  final double value;
+  final String unit;
+  final String? comment;
 
   Measurement(this.sensorName, this.value, this.unit, [this.comment]);
 
@@ -16,12 +16,12 @@ class Measurement {
   }
 }
 
-class SensorConfig {
-  String sensorName;
-  double? min;
-  double? max;
+class Sensor {
+  final String sensorName;
+  final double? min;
+  final double? max;
 
-  SensorConfig(this.sensorName, {this.min, this.max});
+  Sensor(this.sensorName, {this.min, this.max});
 
   bool isInRange(double value) {
     if (min != null && value < min!) {
@@ -53,13 +53,13 @@ class Telemetry {
   }
 
   List<Measurement> findBySensor(String sensorName) {
-    List<Measurement> result = [];
-    for (Measurement m in measurements) {
-      if (m.sensorName == sensorName) {
-        result.add(m);
-      }
+    return measurements.where((m) => m.sensorName == sensorName).toList();
+  }
+
+  void printBySensor(String sensorName) {
+    for (Measurement m in findBySensor(sensorName)) {
+      print('-> ${m.value} ${m.unit}');
     }
-    return result;
   }
 
   double average(String sensorName) {
@@ -76,8 +76,12 @@ class Telemetry {
     return total / found.length;
   }
 
-  String checkValue(double value, SensorConfig config) {
-    return config.isInRange(value) ? 'OK' : 'OUTSIDE RANGE';
+  String checkValue(double value, Sensor config) {
+    if (config.isInRange(value)) {
+      return 'OK';
+    } else {
+      return 'OUTSIDE RANGE';
+    }
   }
 }
 
@@ -90,27 +94,25 @@ void main() {
   t.addMeasurement('temperature', 27.2, '°C');
   t.addMeasurement('speed', 7.6, 'km/s');
 
-  print('--- All measurements ---');
+  print(' All measurements ');
   t.displayAll();
 
-  print('\n--- Find "temperature" ---');
-  for (Measurement m in t.findBySensor('temperature')) {
-    print('-> ${m.value} ${m.unit}');
-  }
+  print('\nFind "temperature"');
+  t.printBySensor('temperature');
 
-  print('\n--- Average temperature ---');
+  print('\n Average temperature ');
   print('${t.average('temperature')} °C');
 
-  SensorConfig tempConfig = SensorConfig('temperature', min: 0, max: 50);
+  Sensor tempConfig = Sensor('temperature', min: 0, max: 50);
 
-  print('\n--- Check temperature (0 to 50) ---');
+  print('\n Check temperature (0 to 50) ');
   print('24.5 -> ${t.checkValue(24.5, tempConfig)}');
   print('27.2 -> ${t.checkValue(27.2, tempConfig)}');
   print('-5 -> ${t.checkValue(-5, tempConfig)}');
 
-  SensorConfig batteryConfig = SensorConfig('battery', min: 20, max: 100);
+  Sensor batteryConfig = Sensor('battery', min: 20, max: 100);
 
-  print('\n--- Check battery (20 to 100) ---');
+  print('\n Check battery (20 to 100) ');
   print('87 -> ${t.checkValue(87, batteryConfig)}');
   print('10 -> ${t.checkValue(10, batteryConfig)}');
   print('105 -> ${t.checkValue(105, batteryConfig)}');
