@@ -53,12 +53,7 @@ class Festival {
   Map<String, List<Performance>> groupByStage() {
     Map<String, List<Performance>> groups = {};
     for (Performance p in performances) {
-      List<Performance>? list = groups[p.stage];
-      if (list == null) {
-        list = [];
-        groups[p.stage] = list;
-      }
-      list.add(p);
+      (groups[p.stage] ??= []).add(p);
     }
     return groups;
   }
