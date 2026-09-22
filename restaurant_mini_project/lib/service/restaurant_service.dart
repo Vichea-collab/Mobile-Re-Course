@@ -9,24 +9,22 @@ class RestaurantService {
   final List<Table> tables = [];
   final List<Customer> customers = [];
   final List<Reservation> reservations = [];
-
   final DateTime Function() _now;
 
   RestaurantService({
     required String restaurantName,
     required int openingHour,
     required int closingHour,
-    int defaultDurationMinutes = 90,
     int maxLateMinutes = 20,
     DateTime Function()? now,
   })  : restaurant = Restaurant(
           name: restaurantName,
           openingHour: openingHour,
           closingHour: closingHour,
-          defaultDurationMinutes: defaultDurationMinutes,
           maxLateMinutes: maxLateMinutes,
         ),
         _now = now ?? DateTime.now;
+
 
   void addTable({
     required int tableId,
@@ -111,16 +109,18 @@ class RestaurantService {
       );
     }
 
-    reservations.add(Reservation(
-      id: reservationId,
-      customerId: customerId,
-      tableId: tableId,
-      slot: slot,
-      partySize: partySize,
-      specialRequest: specialRequest,
-      createdAt: _now(),
-      holdUntil: start.add(Duration(minutes: restaurant.maxLateMinutes)),
-    ));
+    reservations.add(
+      Reservation(
+        id: reservationId,
+        customerId: customerId,
+        tableId: tableId,
+        slot: slot,
+        partySize: partySize,
+        specialRequest: specialRequest,
+        createdAt: _now(),
+        holdUntil: start.add(Duration(minutes: restaurant.maxLateMinutes)),
+      ),
+    );
   }
 
   void seatReservation({required String reservationId}) {
@@ -184,7 +184,8 @@ class RestaurantService {
     DateTime now = _now();
     int released = 0;
     for (Reservation r in reservations) {
-      bool late = r.status == ReservationStatus.pending && now.isAfter(r.holdUntil);
+      bool late =
+          r.status == ReservationStatus.pending && now.isAfter(r.holdUntil);
       if (late) {
         r.status = ReservationStatus.noShow;
         released++;
@@ -214,10 +215,12 @@ class RestaurantService {
 
   List<Reservation> getReservationsForDate(DateTime date) {
     List<Reservation> result = reservations
-        .where((r) =>
-            r.slot.start.year == date.year &&
-            r.slot.start.month == date.month &&
-            r.slot.start.day == date.day)
+        .where(
+          (r) =>
+              r.slot.start.year == date.year &&
+              r.slot.start.month == date.month &&
+              r.slot.start.day == date.day,
+        )
         .toList();
     result.sort((a, b) => a.slot.start.compareTo(b.slot.start));
     return result;
@@ -242,8 +245,11 @@ class RestaurantService {
     if (durationMinutes != null && durationMinutes <= 0) {
       throw Exception('Duration must be greater than zero');
     }
-    int minutes = durationMinutes ?? restaurant.defaultDurationMinutes;
-    return TimeSlot(start: start, end: start.add(Duration(minutes: minutes)));
+    int minutes = durationMinutes ?? 90;
+    return TimeSlot(
+      start: start,
+      end: start.add(Duration(minutes: minutes)),
+    );
   }
 
   bool _isWithinOpeningHours(TimeSlot slot) {
@@ -259,7 +265,8 @@ class RestaurantService {
 
   bool _isTableFree(int tableId, TimeSlot slot) {
     for (Reservation r in reservations) {
-      bool holdsTable = r.status == ReservationStatus.pending ||
+      bool holdsTable =
+          r.status == ReservationStatus.pending ||
           r.status == ReservationStatus.seated;
       bool overlaps = _overlaps(r.slot, slot);
       if (r.tableId == tableId && holdsTable && overlaps) {

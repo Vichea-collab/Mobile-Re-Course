@@ -9,7 +9,6 @@ RestaurantService newService({DateTime Function()? now}) {
     restaurantName: 'Bistro',
     openingHour: 11,
     closingHour: 22,
-    defaultDurationMinutes: 90,
     maxLateMinutes: 20,
     now: now,
   );
